@@ -1,10 +1,10 @@
 # from __future__ import print_function
+
 import time
 from time import sleep
+
 from twilio.rest import Client
 import keys
-import requests
-from bs4 import BeautifulSoup
 
 import datetime
 import os.path
@@ -14,11 +14,6 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-# GET CALENDER EVENT
-GOOGLE_KEY = keys.google_key
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 creds = None
@@ -63,18 +58,25 @@ except HttpError as error:
 
 # CALCULATE AND GET BUS TIME
 # STOP SCHEDULE
-stop_times_iter = "6:18-6:33-6:49-7:04-7:20-7:36-7:52-8:08-8:24-8:40-8:56-9:12-9:27-9:43-9:59-10:15-10:32-11:08-11:45-12:22-12:59-13:36-14:13-14:29-14:45-15:03-15:19-15:35-15:50-16:06-16:22-16:38-16:54".split('-')
-stop_times_TIMES = []
-print(stop_times_iter)
-for time in stop_times_iter:
-    stop_times_TIMES.append(time.split(':'))
+def split_times(times: str) -> list():
+    stop_times_iter = times.split('-')
+    stop_times_TIMES = []
+    for time in stop_times_iter:
+        stop_times_TIMES.append(time.split(':'))
+    return stop_times_TIMES
+def convert_times(times: list()) -> list():
+    stop_times_SECONDS = []
+    for time in times:
+        stop_times_SECONDS.append(int(time[0]) * 3600 + int(time[1]) * 60)
+    return stop_times_SECONDS
 
-stop_times_SECONDS = []
-for time in stop_times_TIMES:
-    stop_times_SECONDS.append(int(time[0])*3600 + int(time[1])*60)
+stop_times_iter = "6:18-6:33-6:49-7:04-7:20-7:36-7:52-8:08-8:24-8:40-8:56-9:12-9:27-9:43-9:59-10:15-10:32-11:08-11:45-12:22-12:59-13:36-14:13-14:29-14:45-15:03-15:19-15:35-15:50-16:06-16:22-16:38-16:54"
 
+stop_times_TIMES = split_times(stop_times_iter)
+stop_times_SECONDS = convert_times(stop_times_TIMES)
+
+# Get event time
 time_TIME = start[11:16].split(':')
-
 event_time_SECONDS = (int(time_TIME[0])*3600 + int(time_TIME[1])*60)
 
 if event_time_SECONDS == 39600:
@@ -84,7 +86,7 @@ else:
 
 # FIND BEST TIME
 index = 0
-MESSAGE = "NO BUS FOUND"
+MESSAGE = ""
 print(event_time_SECONDS)
 for time in stop_times_SECONDS:
     print("TIME", time)
@@ -102,8 +104,9 @@ for time in stop_times_SECONDS:
         break
     index += 1
 print(MESSAGE)
-# Send SMS
-if MESSAGE != "NO BUS FOUND":
+
+# Send SMS (Twilio API)
+if MESSAGE != "":
     client = Client(keys.account_sid, keys.auth_token)
 
     message = client.messages.create(
