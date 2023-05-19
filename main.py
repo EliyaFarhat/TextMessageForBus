@@ -79,12 +79,13 @@ stop_times_SECONDS = convert_times(stop_times_TIMES)
 time_TIME = start[11:16].split(':')
 event_time_SECONDS = (int(time_TIME[0])*3600 + int(time_TIME[1])*60)
 
+# Time constraints
 if event_time_SECONDS == 39600:
     time_to_school = 5400
 else:
     time_to_school = 7200
 
-# FIND BEST TIME
+# FIND BEST TIME AND FORMAT MESSAGE
 index = 0
 MESSAGE = ""
 print(event_time_SECONDS)
