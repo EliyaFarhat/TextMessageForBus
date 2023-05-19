@@ -93,18 +93,23 @@ for time in stop_times_SECONDS:
             end = "a.m."
         else:
             end = "p.m."
-        MESSAGE = f"NEXT BUS COMES AT: {stop_times_TIMES[index][0]}:{stop_times_TIMES[index][1]} {end}"
+        if int(stop_times_TIMES[index][1]) - 10 < 0:
+            stop_times_TIMES[index][0] = int(stop_times_TIMES[index][0])-1
+            stop_times_TIMES[index][1] = 60 - (10 - int(stop_times_TIMES[index][1]))
+        else:
+            stop_times_TIMES[index][1] = int(stop_times_TIMES[index][1]) - 10
+        MESSAGE = f"LEAVE HOUSE AT: {stop_times_TIMES[index][0]}:{stop_times_TIMES[index][1]} {end}"
         break
     index += 1
 print(MESSAGE)
 # Send SMS
+if MESSAGE != "NO BUS FOUND":
+    client = Client(keys.account_sid, keys.auth_token)
 
-client = Client(keys.account_sid, keys.auth_token)
-
-message = client.messages.create(
-    body= MESSAGE,
-    from_= keys.twilio_number,
-    to = keys.target_number
-)
-print(message.body)
+    message = client.messages.create(
+        body= MESSAGE,
+        from_= keys.twilio_number,
+        to = keys.target_number
+    )
+    print(message.body)
 
